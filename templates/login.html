@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Log in · in the kitchen{% endblock %}
+{% block body %}
+<div class="split">
+  <div class="art"><a class="brand" href="/">in the kitchen</a>
+    <div><h2>Where every meal tells a story.</h2><p>Track your mess attendance, rate food, and never miss a menu update.</p></div></div>
+  <div class="formside"><form class="form" method="post">
+    <h1>Welcome Back!</h1><p class="sub">Don't have an account? <a href="#">Sign Up</a></p>
+    <input type="hidden" name="role" id="role" value="{{ role }}">
+    <div class="seg"><button type="button" data-r="student" class="{{ 'on' if role=='student' }}">Student</button>
+      <button type="button" data-r="admin" class="{{ 'on' if role=='admin' }}">Admin</button></div>
+    <label for="email">Email</label><input id="email" name="email" type="email" placeholder="your@college.edu" required>
+    <label for="pw">Password</label><input id="pw" name="password" type="password" placeholder="Enter your password" required>
+    {% if error %}<div class="msg">{{ error }}</div>{% endif %}
+    <button class="btn block" style="margin-top:1.2rem">Sign In</button>
+  </form></div>
+</div>
+{% endblock %}
+{% block scripts %}<script>
+document.querySelectorAll('.seg button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.seg button').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on');document.getElementById('role').value=b.dataset.r;});
+</script>{% endblock %}

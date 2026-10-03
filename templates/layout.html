@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block body %}
+<div class="shell">
+  <aside class="side {{ role }}">
+    <a class="brand" href="/" style="padding:0">in the kitchen</a>
+    <small>{{ 'Admin Portal' if role=='admin' else 'Student Portal' }}</small>
+    {% for key, label in NAV[role] %}
+      <a href="{{ url_for(role, page_name=key) }}" class="{{ 'on' if active==key }}">{{ label }}</a>
+    {% endfor %}
+    <a class="out" href="{{ url_for('logout') }}">Sign Out</a>
+  </aside>
+  <main class="main">{% block content %}{% endblock %}</main>
+</div>
+{% endblock %}

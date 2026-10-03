@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+{% block content %}
+<h1>Executive Dashboard</h1><p class="sub">{{ today }} · Live data</p>
+<div class="grid g3">
+  {% for v,l,c in [('342','Students Present Today','blue'),('2,800 meals','Food Prepared','green'),('18%','Est. Food Waste','amber'),('7','Pending Complaints','red'),('4.1 ⭐','Average Rating','blue'),('12:45 PM','Peak Hour','blue')] %}
+  <div class="card stat"><b class="{{ c }}">{{ v }}</b><span>{{ l }}</span></div>{% endfor %}</div>
+<div class="card" style="margin-top:1rem"><h2>Attendance Trend (Last 6 Days)</h2><canvas id="t" height="80"></canvas></div>
+<div class="card" style="margin-top:1rem"><h2>Crowd Heatmap (Today)</h2><canvas id="h" height="80"></canvas></div>
+<div class="card" style="margin-top:1rem"><h2>Meal Distribution (Today)</h2><div style="max-width:260px"><canvas id="d"></canvas></div></div>
+{% endblock %}
+{% block scripts %}<script>
+const L=(id,l,d)=>new Chart(document.getElementById(id),{type:'line',data:{labels:l,datasets:[{data:d,borderColor:'#1d5fe0',tension:.4}]},options:{plugins:{legend:{display:false}}}});
+L('t',['Jul 25','Jul 26','Jul 27','Jul 28','Jul 29','Jul 30'],[310,290,330,320,350,342]);
+new Chart(h,{type:'bar',data:{labels:['7:30','8:00','8:30','12:00','12:30','1:00','1:30','5:00','8:00','8:30'],datasets:[{data:[90,140,95,190,290,367,200,110,180,230],backgroundColor:'#1d5fe0',borderRadius:6}]},options:{plugins:{legend:{display:false}}}});
+new Chart(d,{type:'doughnut',data:{labels:['Breakfast','Lunch','Snacks','Dinner'],datasets:[{data:[68,91,54,79],backgroundColor:['#e08a00','#1d5fe0','#1f9d55','#5a63d8']}]}});
+</script>{% endblock %}

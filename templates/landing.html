@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block body %}
+<nav class="top"><a class="brand" href="/">in the kitchen</a>
+  <a class="l" href="#features">Features</a><a class="l" href="#how">How It Works</a><a class="l" href="#faq">FAQ</a>
+  <a class="l" href="{{ url_for('login') }}">login</a><a class="btn" href="{{ url_for('login') }}">sign up</a></nav>
+<section class="hero">
+  <div><span class="chip">trusted by 500+ students</span>
+    <h1>woh bhi aaj dhur hai, joh kabhi 🍛</h1>
+    <p class="sub" style="font-size:1.1rem">Smart mess demand &amp; analytics for university students and hostel administrators.</p>
+    <div class="cta"><a class="btn" href="{{ url_for('login') }}">Get Started</a>
+      <a class="btn out" href="{{ url_for('login', role='student') }}">Student Login</a>
+      <a class="btn soft" href="{{ url_for('login', role='admin') }}">Admin Login</a></div></div>
+  <div class="card"><div class="meal" style="border:0"><b>Today's Mess</b><span class="tag">Open</span></div>
+    {% for m,i,t in [('Breakfast','Idli, Sambar, Chutney','7:30 AM'),('Lunch','Rice, Dal, Sabzi, Roti','12:30 PM'),('Snacks','Tea, Biscuits, Bread','5:00 PM'),('Dinner','Chapati, Paneer, Dal','8:00 PM')] %}
+    <div class="meal"><div><b>{{ m }}</b><small>{{ i }}</small></div><span>{{ t }}</span></div>{% endfor %}</div>
+</section>
+<section class="grid g4" style="padding:1rem 3rem;text-align:center">
+  {% for n,l in [('500+','Users'),('2500+','Meal Ratings'),('150+','Menu Served'),('4.5','Rating')] %}
+  <div class="stat"><b>{{ n }}</b><span>{{ l }}</span></div>{% endfor %}</section>
+<section class="sec" id="features"><h2>Everything You Need</h2><p class="sub">Simple tools to make your mess experience better</p>
+  <div class="grid g3">
+  {% for i,t,d in [('🍽️','Daily & Weekly Menus','See breakfast, lunch, snacks and dinner'),('⭐','Rate Every Meal','Feedback on quality, taste and hygiene'),('📊','Track Your History','Attendance and rating history over time')] %}
+  <div class="card feat"><i>{{ i }}</i><h2>{{ t }}</h2><span class="sub">{{ d }}</span></div>{% endfor %}</div></section>
+<section class="sec" id="how"><h2>How It Works</h2><p class="sub">Get started in under a minute</p>
+  <div class="steps">{% for t,d in [('Create Account','Sign up with your college email'),('Admin Approval','Usually within 24 hours'),('Access Dashboard','Log in to see today\'s menu'),('Rate & Improve','Rate meals from 1-5 stars'),('Track History','See trends over time')] %}
+  <div class="card"><div class="num">{{ loop.index }}</div><b class="blue">{{ t }}</b><p class="sub" style="font-size:.85rem">{{ d }}</p></div>{% endfor %}</div></section>
+<section class="sec" id="faq" style="max-width:700px;margin:auto"><h2>Common Questions</h2>
+  {% for q in ['Is in the kitchen free to use?','Can I see the menu without logging in?','Will mess staff see my ratings?','How does QR attendance work?'] %}
+  <div class="card" style="margin:.6rem 0;text-align:left"><b>{{ q }}</b></div>{% endfor %}</section>
+{% endblock %}

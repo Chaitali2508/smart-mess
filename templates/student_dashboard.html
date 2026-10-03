@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+{% block content %}
+<h1>Hi {{ name }} 👋</h1><p class="sub">{{ today }} · Welcome back to the mess portal</p>
+<div class="card"><div class="row" style="border:0"><h2>Today's Meals</h2><span class="tag">Mess Open</span></div>
+  <div class="grid g2">
+  {% for m,i,t in [('Breakfast','Idli, Sambar, Green Chutney, Coffee','7:30 AM'),('Lunch','Rice, Dal Tadka, Aloo Sabzi, Roti, Curd','12:30 PM'),('Snacks','Tea, Bread Pakora, Ketchup','5:00 PM'),('Dinner','Chapati, Paneer Butter Masala, Dal Makhani','8:00 PM')] %}
+  <div class="card"><div class="row" style="border:0;padding:0"><b>{{ m }}</b><span>{{ t }}</span></div><span class="sub" style="font-size:.85rem">{{ i }}</span></div>{% endfor %}</div></div>
+<div class="card" style="margin-top:1rem"><h2>Attendance Analytics</h2>
+  <div class="grid g3"><div class="stat"><b>22</b><span>Present Days</span></div><div class="stat"><b class="red">4</b><span>Absent Days</span></div><div class="stat"><b class="green">84.6%</b><span>Attendance</span></div></div>
+  <canvas id="c" height="90"></canvas></div>
+<div class="grid g2" style="margin-top:1rem">
+  <div class="card" style="text-align:center"><h2>Mark Attendance</h2><div class="qr">▣</div><b>Scan at mess entrance</b><p class="sub">Valid for Snacks (5:00-6:00 PM)</p><a class="btn" href="{{ url_for('student', page_name='attendance') }}">Open scanner</a></div>
+  <div class="card"><h2>Quick Stats</h2>
+    {% for a,b in [('4 Meals','Today\'s menu'),('Snacks','Current meal · 5:00-6:00 PM'),('4.2 ⭐','Avg. rating from your reviews'),('1,840 kcal','Today\'s calories of 2,200 goal')] %}
+    <div class="row"><b>{{ a }}</b><span class="sub" style="margin:0">{{ b }}</span></div>{% endfor %}</div></div>
+{% endblock %}
+{% block scripts %}<script>
+new Chart(document.getElementById('c'),{type:'line',data:{labels:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],datasets:[{data:[85,100,78,95,62,85,55],borderColor:'#1d5fe0',tension:.4}]},options:{plugins:{legend:{display:false}}}});
+</script>{% endblock %}

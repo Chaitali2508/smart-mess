@@ -1,0 +1,28 @@
+{% extends "layout.html" %}
+{% block content %}
+<h1>Attendance</h1><p class="sub">Track your mess attendance history and trends</p>
+<div class="grid g4">
+  <div class="card stat"><b class="green">22</b><span>Present Days</span></div><div class="card stat"><b class="red">4</b><span>Absent Days</span></div>
+  <div class="card stat"><b class="blue">84.6%</b><span>Attendance %</span></div><div class="card stat"><b class="amber">7 days</b><span>Current Streak</span></div></div>
+<div class="card" style="margin-top:1rem"><h2>Calendar</h2>
+  <div class="cal">{% for d in range(1,32) %}<div class="{{ 'a' if d in (10,25) }}">{{ d }}</div>{% endfor %}</div></div>
+<div class="card" style="margin-top:1rem;text-align:center"><h2>Scan &amp; Mark Attendance</h2>
+  <div class="chips" style="display:flex;gap:.5rem;justify-content:center;margin-bottom:1rem">
+    {% for m in ['breakfast','lunch','snacks','dinner'] %}<button class="btn out meal-btn" data-m="{{ m }}" style="padding:.4rem 1rem">{{ m|title }}</button>{% endfor %}</div>
+  <div id="reader" style="max-width:340px;margin:auto"></div>
+  <button class="btn block" id="mark" style="margin-top:1rem">Mark Attendance</button><div id="out"></div></div>
+<div class="card" style="margin-top:1rem"><h2>Insights</h2>
+  {% for a,b in [('Peak Visit Time','12:30 PM'),('Best Streak','12 days'),('Preferred Meal','Lunch'),('Most Absent Day','Friday')] %}
+  <div class="row"><span>{{ a }}</span><b>{{ b }}</b></div>{% endfor %}</div>
+{% endblock %}
+{% block scripts %}
+<script src="https://unpkg.com/html5-qrcode"></script>
+<script>
+let meal=null;const out=document.getElementById('out');
+document.querySelectorAll('.meal-btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.meal-btn').forEach(x=>x.classList.add('out'));b.classList.remove('out');meal=b.dataset.m;});
+async function mark(){if(!meal){out.innerHTML='<div class="msg">Choose a meal first.</div>';return;}
+  const r=await fetch('/api/attendance',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({meal})});
+  const d=await r.json();out.innerHTML=`<div class="msg" style="background:${d.ok?'#e3f4ea':'#f8e4e4'}">${d.msg}</div>`;}
+new Html5QrcodeScanner('reader',{fps:10,qrbox:200}).render(()=>mark(),()=>{});  // TODO: verify decoded text
+document.getElementById('mark').onclick=mark;
+</script>{% endblock %}

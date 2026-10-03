@@ -1,0 +1,5 @@
+{% extends "layout.html" %}
+{% block content %}
+{% for k, l in NAV[role] if k == active %}<h1>{{ l }}</h1>{% endfor %}
+<p class="sub">This page isn't built yet. Copy student_attendance.html or admin_complaints.html and follow the same card/grid pattern.</p>
+{% endblock %}
