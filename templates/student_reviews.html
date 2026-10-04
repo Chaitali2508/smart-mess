@@ -1,0 +1,35 @@
+{% extends "layout.html" %}
+{% block content %}
+<h1>Reviews &amp; Complaints</h1><p class="sub">Rate your meal experience and raise complaints</p>
+{% set sent = request.args.get('sent') %}
+{% if sent == 'review' %}<div class="msg ok">Thanks, your review was saved.</div>
+{% elif sent == 'complaint' %}<div class="msg ok">Your complaint was submitted.</div>
+{% elif request.args.get('err') %}<div class="msg">Please give at least an overall rating.</div>{% endif %}
+<form method="post" class="card" style="margin-top:1rem"><input type="hidden" name="kind" value="review">
+  <h2>Rate Today's Meal</h2>
+  <div class="mealtabs">{% for m in meals %}<button type="button" data-m="{{ m }}" class="{{ 'on' if m=='lunch' }}">{{ m|title }}</button>{% endfor %}</div>
+  <input type="hidden" name="meal" id="meal1" value="lunch">
+  <div class="grid g3">{% for k, l in criteria %}
+    <div><b>{{ l }}</b><div class="stars">{% for i in range(5) %}<span>★</span>{% endfor %}</div><input type="hidden" name="{{ k }}" value="0"></div>{% endfor %}</div>
+  <label for="cm">Comment (optional)</label><textarea id="cm" name="comment" placeholder="Add a comment about your meal..."></textarea>
+  <button class="btn" style="margin-top:1rem">Submit Review</button></form>
+<form method="post" class="card" style="margin-top:1rem"><input type="hidden" name="kind" value="complaint">
+  <h2>Raise a Complaint</h2>
+  <label for="cmeal">Meal</label><select id="cmeal" name="meal">{% for m in meals %}<option value="{{ m }}">{{ m|title }}</option>{% endfor %}</select>
+  <label for="ct">What went wrong?</label><textarea id="ct" name="text" required placeholder="e.g. The rice was undercooked and cold."></textarea>
+  <button class="btn" style="margin-top:1rem">Submit Complaint</button></form>
+<div class="grid g2" style="margin-top:1rem">
+  <div class="card"><h2>My Complaints</h2>
+    {% for c in my_complaints %}<div class="row"><div><b>{{ c.cid }}</b> · {{ c.meal|title }} · {{ c.date.strftime('%d %b') }}<br>{{ c.text }}<br><span class="tag" style="background:#e8f0fe;color:#1d5fe0">{{ c.category }}</span></div><b class="{{ 'green' if c.status=='Resolved' else 'amber' }}">{{ c.status }}</b></div>
+    {% else %}<p class="sub" style="margin:0">No complaints yet.</p>{% endfor %}</div>
+  <div class="card"><h2>Review History</h2>
+    {% for r in my_reviews %}<div class="row"><div><b>{{ r.meal|title }}</b> · {{ r.date.strftime('%d %b %Y') }}<br>{{ r.comment or 'No comment' }}</div><b class="amber">{{ r.ratings.overall }} ★</b></div>
+    {% else %}<p class="sub" style="margin:0">No reviews yet.</p>{% endfor %}</div></div>
+{% endblock %}
+{% block scripts %}<script>
+document.querySelectorAll('.stars').forEach(s=>{const sp=[...s.children],h=s.nextElementSibling;
+  sp.forEach((x,i)=>x.onclick=()=>{h.value=i+1;sp.forEach((y,j)=>y.classList.toggle('on',j<=i));});});
+document.querySelectorAll('.mealtabs button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.mealtabs button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+  document.getElementById('meal1').value=b.dataset.m;});
+</script>{% endblock %}

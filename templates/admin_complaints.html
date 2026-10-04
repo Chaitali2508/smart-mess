@@ -2,18 +2,23 @@
 {% block content %}
 <h1>Complaint Analytics</h1><p class="sub">Track and resolve student complaints by category</p>
 <div class="grid g4">
-  <div class="card stat"><b>86</b><span>Total Complaints</span></div><div class="card stat"><b class="green">68</b><span>Resolved</span></div>
-  <div class="card stat"><b class="red">12</b><span>Pending</span></div><div class="card stat"><b class="amber">3.2 ⭐</b><span>Avg Rating</span></div></div>
+  <div class="card stat"><b>{{ total }}</b><span>Total Complaints</span></div><div class="card stat"><b class="green">{{ resolved }}</b><span>Resolved</span></div>
+  <div class="card stat"><b class="red">{{ pending }}</b><span>Pending</span></div><div class="card stat"><b class="amber">{{ avg }} ⭐</b><span>Avg Overall Rating</span></div></div>
+{% if total %}
 <div class="grid g2" style="margin-top:1rem">
   <div class="card"><h2>Complaint Categories</h2><canvas id="c"></canvas></div>
-  <div class="card"><h2>Most Complained Food Items</h2><canvas id="f"></canvas></div></div>
+  <div class="card"><h2>Complaints by Meal</h2><canvas id="f"></canvas></div></div>
+{% endif %}
 <div class="card" style="margin-top:1rem"><h2>Recent Complaints</h2>
-  {% for id,who,cat,txt,st,c in [('C-201','Rahul K.','Food Quality','Rice was undercooked and bad stones.','Pending','red'),('C-200','Priya S.','Hygiene','Found a fly in the sambar bowl.','Under Review','amber'),('C-199','Amit T.','Delay','Waited 45 minutes in queue.','Resolved','green')] %}
-  <div class="row"><div><b>{{ id }}</b> by {{ who }} <span class="tag" style="background:#e8f0fe;color:#1d5fe0">{{ cat }}</span><br>{{ txt }}</div><b class="{{ c }}">{{ st }}</b></div>{% endfor %}
-  <!-- TODO: load from db.feedback and show the ML-predicted category -->
+  {% for c in items %}
+  <div class="row"><div><b>{{ c.cid }}</b> by {{ c.name or c.student }} <span class="tag" style="background:#e8f0fe;color:#1d5fe0">{{ c.category }}</span> · {{ c.meal|title }} · {{ c.date.strftime('%d %b') }}<br>{{ c.text }}</div>
+    <form method="post" action="{{ url_for('complaint_status', cid=c.cid) }}"><select name="status" onchange="this.form.submit()">
+      {% for s in statuses %}<option {{ 'selected' if s==c.status }}>{{ s }}</option>{% endfor %}</select></form></div>
+  {% else %}<p class="sub" style="margin:0">No complaints yet. Submit one from the student Reviews page.</p>{% endfor %}
 </div>
 {% endblock %}
-{% block scripts %}<script>
-new Chart(c,{type:'doughnut',data:{labels:['Food Quality','Hygiene','Staff Behaviour','Delay / Queue','Cold Food'],datasets:[{data:[32,22,15,18,13],backgroundColor:['#d93636','#e08a00','#1d5fe0','#5a63d8','#1fa8c9']}]}});
-new Chart(f,{type:'bar',data:{labels:['Rice','Dal','Bread','Tea','Sabzi','Paneer'],datasets:[{data:[18,6,5,3,14,4],backgroundColor:'#1d5fe0'}]},options:{indexAxis:'y',plugins:{legend:{display:false}}}});
-</script>{% endblock %}
+{% block scripts %}{% if total %}<script>
+const cats={{ cats|tojson }}, meals={{ meals|tojson }};
+new Chart(document.getElementById('c'),{type:'doughnut',data:{labels:Object.keys(cats),datasets:[{data:Object.values(cats),backgroundColor:['#d93636','#e08a00','#1d5fe0','#5a63d8','#1fa8c9','#1f9d55','#888']}]}});
+new Chart(document.getElementById('f'),{type:'bar',data:{labels:Object.keys(meals),datasets:[{data:Object.values(meals),backgroundColor:'#1d5fe0'}]},options:{plugins:{legend:{display:false}}}});
+</script>{% endif %}{% endblock %}

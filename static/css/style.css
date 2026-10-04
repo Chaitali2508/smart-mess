@@ -48,3 +48,10 @@ input{width:100%;padding:.8rem 1rem;border:1px solid var(--line);border-radius:1
 .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;text-align:center}.cal div{padding:.7rem 0;border-radius:10px;background:#e3f4ea}.cal .a{background:#fde6e1;color:var(--red)}
 .ai{background:linear-gradient(120deg,#0a1654,#1337d0);color:#fff;border-radius:16px;padding:1.3rem}.ai h2{color:#fff}
 @media(max-width:800px){.shell,.split,.hero{grid-template-columns:1fr}.hero h1{font-size:3rem}.top{padding:1rem}.main{padding:1.2rem}.art{display:none}.side{flex-direction:row;flex-wrap:wrap}.side .out{margin:0}}
+
+.msg.ok{background:#e3f4ea;color:#1f5c42}
+.stars span{cursor:pointer;font-size:1.6rem;color:#c9d2e6;user-select:none}.stars span.on{color:#f5b301}
+.mealtabs{display:flex;gap:.5rem;flex-wrap:wrap;margin:.8rem 0 1.2rem}
+.mealtabs button{border:0;background:#eef1f8;color:var(--navy);padding:.5rem 1.1rem;border-radius:999px;font:inherit;font-weight:700;cursor:pointer}.mealtabs button.on{background:var(--navy);color:#fff}
+textarea{width:100%;padding:.8rem 1rem;border:1px solid var(--line);border-radius:12px;font:inherit;background:#f3f5f9;min-height:100px}
+select{padding:.5rem .7rem;border:1px solid var(--line);border-radius:10px;font:inherit;background:#fff}

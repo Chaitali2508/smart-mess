@@ -1,4 +1,5 @@
 import os
+from collections import Counter
 from datetime import datetime
 from functools import wraps
 from flask import Flask, render_template, request, redirect, session, jsonify, url_for
@@ -100,6 +101,58 @@ def student(page_name):
 @need("admin")
 def admin(page_name):
     return page("admin", page_name)
+
+MEALS = ["breakfast", "lunch", "snacks", "dinner"]
+CRITERIA = [("quality", "Food Quality"), ("temperature", "Food Temperature"), ("hygiene", "Hygiene"),
+            ("staff", "Staff Behaviour"), ("speed", "Serving Speed"), ("overall", "Overall Experience")]
+STATUSES = ["Pending", "Under Review", "Resolved"]
+
+def predict_category(text):
+    # TODO: load the trained SVM pipeline (TF-IDF + LinearSVC) with joblib and predict
+    return "Unclassified"
+
+@app.route("/student/reviews", methods=["GET", "POST"])
+@need("student")
+def reviews():
+    me = session["user"]
+    if request.method == "POST":
+        meal = request.form.get("meal", "lunch")
+        if request.form["kind"] == "review":
+            ratings = {k: int(request.form.get(k) or 0) for k, _ in CRITERIA}
+            if ratings["overall"] == 0:
+                return redirect(url_for("reviews", err=1))
+            db.reviews.insert_one({"student": me, "meal": meal, "ratings": ratings,
+                                   "comment": request.form.get("comment", "").strip(), "date": datetime.now()})
+            return redirect(url_for("reviews", sent="review"))
+        text = request.form["text"].strip()
+        if text:
+            n = db.complaints.count_documents({}) + 1
+            db.complaints.insert_one({"cid": f"C-{200 + n}", "student": me, "name": session.get("name", ""), "meal": meal,
+                                      "text": text, "category": predict_category(text), "status": "Pending", "date": datetime.now()})
+        return redirect(url_for("reviews", sent="complaint"))
+    return render_template("student_reviews.html", active="reviews", meals=MEALS, criteria=CRITERIA,
+                           my_reviews=list(db.reviews.find({"student": me}).sort("date", -1).limit(8)),
+                           my_complaints=list(db.complaints.find({"student": me}).sort("date", -1).limit(8)))
+
+@app.route("/admin/complaints")
+@need("admin")
+def complaints():
+    items = list(db.complaints.find().sort("date", -1))
+    overall = [r["ratings"]["overall"] for r in db.reviews.find() if r["ratings"].get("overall")]
+    return render_template("admin_complaints.html", active="complaints", items=items[:10], total=len(items),
+                           resolved=sum(c["status"] == "Resolved" for c in items),
+                           pending=sum(c["status"] == "Pending" for c in items),
+                           avg=round(sum(overall) / len(overall), 1) if overall else "–",
+                           cats=dict(Counter(c["category"] for c in items)),
+                           meals=dict(Counter(c["meal"].title() for c in items)), statuses=STATUSES)
+
+@app.post("/admin/complaints/<cid>/status")
+@need("admin")
+def complaint_status(cid):
+    status = request.form.get("status")
+    if status in STATUSES:
+        db.complaints.update_one({"cid": cid}, {"$set": {"status": status}})
+    return redirect(url_for("complaints"))
 
 @app.post("/api/attendance")
 @need("student")
