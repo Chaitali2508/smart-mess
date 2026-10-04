@@ -107,9 +107,24 @@ CRITERIA = [("quality", "Food Quality"), ("temperature", "Food Temperature"), ("
             ("staff", "Staff Behaviour"), ("speed", "Serving Speed"), ("overall", "Overall Experience")]
 STATUSES = ["Pending", "Under Review", "Resolved"]
 
+_model = None
+MODEL_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ml", "models")
+
 def predict_category(text):
-    # TODO: load the trained SVM pipeline (TF-IDF + LinearSVC) with joblib and predict
-    return "Unclassified"
+    """Classify complaint text with the trained SVM. Returns 'Unclassified' until the model is trained."""
+    global _model
+    path = os.path.join(MODEL_DIR, "complaint_svm.joblib")
+    if _model is None:
+        if not os.path.exists(path):
+            return "Unclassified"
+        import joblib
+        _model = joblib.load(path)
+    return str(_model.predict([text])[0])
+
+def load_metrics():
+    import json
+    path = os.path.join(MODEL_DIR, "metrics.json")
+    return json.load(open(path)) if os.path.exists(path) else None
 
 @app.route("/student/reviews", methods=["GET", "POST"])
 @need("student")
@@ -144,7 +159,7 @@ def complaints():
                            pending=sum(c["status"] == "Pending" for c in items),
                            avg=round(sum(overall) / len(overall), 1) if overall else "–",
                            cats=dict(Counter(c["category"] for c in items)),
-                           meals=dict(Counter(c["meal"].title() for c in items)), statuses=STATUSES)
+                           meals=dict(Counter(c["meal"].title() for c in items)), statuses=STATUSES, metrics=load_metrics())
 
 @app.post("/admin/complaints/<cid>/status")
 @need("admin")

@@ -6,8 +6,13 @@
   <div class="card stat"><b class="red">{{ pending }}</b><span>Pending</span></div><div class="card stat"><b class="amber">{{ avg }} ⭐</b><span>Avg Overall Rating</span></div></div>
 {% if total %}
 <div class="grid g2" style="margin-top:1rem">
-  <div class="card"><h2>Complaint Categories</h2><canvas id="c"></canvas></div>
-  <div class="card"><h2>Complaints by Meal</h2><canvas id="f"></canvas></div></div>
+  <div class="card"><h2>Complaint Categories</h2><canvas id="c" data-values='{{ cats|tojson }}'></canvas></div>
+  <div class="card"><h2>Complaints by Meal</h2><canvas id="f" data-values='{{ meals|tojson }}'></canvas></div></div>
+{% endif %}
+{% if metrics %}
+<div class="card" style="margin-top:1rem"><h2>Complaint classifier performance</h2>
+  <table><tr><th>Model</th><th>Test accuracy</th><th>Macro F1</th><th>5-fold CV</th></tr>
+  {% for name, m in metrics.items() %}<tr><td><b>{{ name }}</b>{{ ' (main)' if name == 'SVM' }}</td><td>{{ '%.1f'|format(m['accuracy']*100) }}%</td><td>{{ '%.2f'|format(m['f1_macro']) }}</td><td>{{ '%.1f'|format(m['cv_accuracy']*100) }}%</td></tr>{% endfor %}</table></div>
 {% endif %}
 <div class="card" style="margin-top:1rem"><h2>Recent Complaints</h2>
   {% for c in items %}
@@ -18,7 +23,8 @@
 </div>
 {% endblock %}
 {% block scripts %}{% if total %}<script>
-const cats={{ cats|tojson }}, meals={{ meals|tojson }};
+const cats=JSON.parse(document.getElementById('c').dataset.values);
+const meals=JSON.parse(document.getElementById('f').dataset.values);
 new Chart(document.getElementById('c'),{type:'doughnut',data:{labels:Object.keys(cats),datasets:[{data:Object.values(cats),backgroundColor:['#d93636','#e08a00','#1d5fe0','#5a63d8','#1fa8c9','#1f9d55','#888']}]}});
 new Chart(document.getElementById('f'),{type:'bar',data:{labels:Object.keys(meals),datasets:[{data:Object.values(meals),backgroundColor:'#1d5fe0'}]},options:{plugins:{legend:{display:false}}}});
 </script>{% endif %}{% endblock %}
