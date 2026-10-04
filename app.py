@@ -169,6 +169,23 @@ def complaint_status(cid):
         db.complaints.update_one({"cid": cid}, {"$set": {"status": status}})
     return redirect(url_for("complaints"))
 
+def load_forecast():
+    import json
+    path = os.path.join(MODEL_DIR, "attendance_forecast.json")
+    return json.load(open(path)) if os.path.exists(path) else None
+
+@app.route("/admin/dashboard")
+@need("admin")
+def admin_dashboard():
+    day = datetime.now().strftime("%Y-%m-%d")
+    today_rows = list(db.attendance.find({"date": day}))
+    overall = [r["ratings"]["overall"] for r in db.reviews.find() if r["ratings"].get("overall")]
+    return render_template("admin_dashboard.html", active="dashboard", today=datetime.now().strftime("%A, %d %B %Y"),
+                           meals=MEALS, counts=Counter(a["meal"] for a in today_rows),
+                           present=len({a["student"] for a in today_rows}),
+                           pending=db.complaints.count_documents({"status": "Pending"}),
+                           rating=round(sum(overall) / len(overall), 1) if overall else "–", forecast=load_forecast())
+
 @app.post("/api/attendance")
 @need("student")
 def mark_attendance():

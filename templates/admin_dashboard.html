@@ -1,16 +1,32 @@
 {% extends "layout.html" %}
 {% block content %}
 <h1>Executive Dashboard</h1><p class="sub">{{ today }} · Live data</p>
-<div class="grid g3">
-  {% for v,l,c in [('342','Students Present Today','blue'),('2,800 meals','Food Prepared','green'),('18%','Est. Food Waste','amber'),('7','Pending Complaints','red'),('4.1 ⭐','Average Rating','blue'),('12:45 PM','Peak Hour','blue')] %}
-  <div class="card stat"><b class="{{ c }}">{{ v }}</b><span>{{ l }}</span></div>{% endfor %}</div>
-<div class="card" style="margin-top:1rem"><h2>Attendance Trend (Last 6 Days)</h2><canvas id="t" height="80"></canvas></div>
-<div class="card" style="margin-top:1rem"><h2>Crowd Heatmap (Today)</h2><canvas id="h" height="80"></canvas></div>
-<div class="card" style="margin-top:1rem"><h2>Meal Distribution (Today)</h2><div style="max-width:260px"><canvas id="d"></canvas></div></div>
+<div class="grid g4">
+  <div class="card stat"><b class="blue">{{ present }}</b><span>Students Present Today</span></div>
+  <div class="card stat"><b class="red">{{ pending }}</b><span>Pending Complaints</span></div>
+  <div class="card stat"><b class="amber">{{ rating }} ⭐</b><span>Average Rating</span></div>
+  <div class="card stat"><b class="green">{{ forecast.forecast.total[0] if forecast else '–' }}</b><span>Predicted Meals Tomorrow</span></div></div>
+<div class="card" style="margin-top:1rem"><h2>Today's Attendance by Meal</h2>
+  <div class="grid g4">{% for m in meals %}<div class="stat"><b>{{ counts.get(m, 0) }}</b><span>{{ m|title }}</span></div>{% endfor %}</div></div>
+{% if forecast %}
+<div class="grid g2" style="margin-top:1rem">
+  <div class="card"><h2>Actual vs Predicted (last 14 days)</h2><canvas id="a" data-values='{{ forecast.test|tojson }}'></canvas></div>
+  <div class="card"><h2>Forecast: next 7 days (total meals)</h2><canvas id="b" data-values='{{ forecast.forecast|tojson }}'></canvas></div></div>
+<div class="card" style="margin-top:1rem"><h2>Predicted attendance by meal</h2>
+  <table><tr><th>Day</th>{% for m in meals %}<th>{{ m|title }}</th>{% endfor %}<th>Total</th></tr>
+  {% for i in range(forecast.forecast.labels|length) %}<tr><td>{{ forecast.forecast.labels[i] }}</td>
+    {% for m in meals %}<td>{{ forecast.forecast.by_meal[m|title][i] }}</td>{% endfor %}<td><b>{{ forecast.forecast.total[i] }}</b></td></tr>{% endfor %}</table></div>
+<div class="card" style="margin-top:1rem"><h2>Model performance (last 14 days, per meal)</h2>
+  <table><tr><th>Model</th><th>MAE</th><th>RMSE</th><th>R²</th></tr>
+  {% for name, m in forecast.metrics.items() %}<tr><td>{% if name == 'Linear Regression' %}<b>{{ name }}</b>{% else %}{{ name }}{% endif %}</td><td>{{ '%.1f'|format(m['mae']) }}</td><td>{{ '%.1f'|format(m['rmse']) }}</td><td>{{ '%.2f'|format(m['r2']) }}</td></tr>{% endfor %}</table>
+  <p class="sub" style="margin:.8rem 0 0;font-size:.85rem">Trained on synthetic attendance history until real records are collected. MAE is the average error in students.</p></div>
+{% else %}
+<div class="card" style="margin-top:1rem"><h2>Attendance prediction</h2><p class="sub" style="margin:0">The model isn't trained yet. Run <code>python ml\generate_attendance.py</code> and then <code>python ml\train_attendance.py</code>.</p></div>
+{% endif %}
 {% endblock %}
-{% block scripts %}<script>
-const L=(id,l,d)=>new Chart(document.getElementById(id),{type:'line',data:{labels:l,datasets:[{data:d,borderColor:'#1d5fe0',tension:.4}]},options:{plugins:{legend:{display:false}}}});
-L('t',['Jul 25','Jul 26','Jul 27','Jul 28','Jul 29','Jul 30'],[310,290,330,320,350,342]);
-new Chart(h,{type:'bar',data:{labels:['7:30','8:00','8:30','12:00','12:30','1:00','1:30','5:00','8:00','8:30'],datasets:[{data:[90,140,95,190,290,367,200,110,180,230],backgroundColor:'#1d5fe0',borderRadius:6}]},options:{plugins:{legend:{display:false}}}});
-new Chart(d,{type:'doughnut',data:{labels:['Breakfast','Lunch','Snacks','Dinner'],datasets:[{data:[68,91,54,79],backgroundColor:['#e08a00','#1d5fe0','#1f9d55','#5a63d8']}]}});
-</script>{% endblock %}
+{% block scripts %}{% if forecast %}<script>
+const T = JSON.parse(document.getElementById('a').dataset.values), F = JSON.parse(document.getElementById('b').dataset.values);
+new Chart(document.getElementById('a'), {type:'line', data:{labels:T.labels, datasets:[
+  {label:'Actual', data:T.actual, borderColor:'#1f9d55', tension:.3}, {label:'Predicted', data:T.predicted, borderColor:'#1d5fe0', borderDash:[6,4], tension:.3}]}});
+new Chart(document.getElementById('b'), {type:'bar', data:{labels:F.labels, datasets:[{data:F.total, backgroundColor:'#1d5fe0', borderRadius:6}]}, options:{plugins:{legend:{display:false}}}});
+</script>{% endif %}{% endblock %}
