@@ -1,0 +1,13 @@
+{% extends "layout.html" %}
+{% block content %}
+<h1>Account Approvals</h1><p class="sub">Approve or reject new student sign-ups</p>
+<div class="card">
+  {% for u in users %}
+  <div class="row"><div><b>{{ u.name }}</b><br><span class="sub" style="margin:0">{{ u.email }} · {{ u.created.strftime('%d %b %Y, %H:%M') }}</span></div>
+    <div style="display:flex;gap:.5rem">
+      <form method="post" action="{{ url_for('approval_action', action='approve', email=u.email) }}"><button class="btn" style="padding:.4rem 1.1rem">Approve</button></form>
+      <form method="post" action="{{ url_for('approval_action', action='reject', email=u.email) }}"><button class="btn out" style="padding:.4rem 1.1rem">Reject</button></form>
+    </div></div>
+  {% else %}<p class="sub" style="margin:0">No pending requests.</p>{% endfor %}
+</div>
+{% endblock %}

@@ -3,6 +3,7 @@ from datetime import datetime
 from functools import wraps
 from flask import Flask, render_template, request, redirect, session, jsonify, url_for
 from pymongo import MongoClient
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 app.secret_key = "change-me"
@@ -10,7 +11,7 @@ db = MongoClient("mongodb://localhost:27017")["smart_mess"]
 
 NAV = {
  "student": [("dashboard","Dashboard"),("attendance","Attendance"),("reviews","Reviews"),("menu","Weekly Menu"),("nutrition","Nutrition"),("profile","Profile")],
- "admin": [("dashboard","Dashboard"),("crowd","Crowd Analytics"),("waste","Food Waste"),("complaints","Complaints"),("menu","Menu Management"),("ai","AI Insights")],
+ "admin": [("dashboard","Dashboard"),("approvals","Approvals"),("crowd","Crowd Analytics"),("waste","Food Waste"),("complaints","Complaints"),("menu","Menu Management"),("ai","AI Insights")],
 }
 
 @app.context_processor
@@ -35,12 +36,49 @@ def landing():
 def login():
     if request.method == "POST":
         role = request.form["role"]
-        u = db.users.find_one({"email": request.form["email"], "password": request.form["password"], "role": role})  # TODO: hash passwords
-        if u:
+        u = db.users.find_one({"email": request.form["email"].strip().lower(), "role": role})
+        if u and check_password_hash(u["password"], request.form["password"]):
+            if u.get("status", "approved") != "approved":
+                return render_template("login.html", error="Your account is waiting for admin approval.", role=role)
             session.update(user=u["email"], role=role, name=u.get("name", "there"))
             return redirect(url_for(role, page_name="dashboard"))
         return render_template("login.html", error="Email or password is incorrect.", role=role)
     return render_template("login.html", role=request.args.get("role", "student"))
+
+@app.route("/signup", methods=["GET", "POST"])
+def signup():
+    if request.method == "POST":
+        name = request.form["name"].strip()
+        email = request.form["email"].strip().lower()
+        pw, pw2 = request.form["password"], request.form["confirm"]
+        err = None
+        if len(pw) < 6:
+            err = "Password must be at least 6 characters."
+        elif pw != pw2:
+            err = "Passwords do not match."
+        elif db.users.find_one({"email": email}):
+            err = "This email is already registered."
+        if err:
+            return render_template("signup.html", error=err, name=name, email=email)
+        db.users.insert_one({"name": name, "email": email, "password": generate_password_hash(pw),
+                             "role": "student", "status": "pending", "created": datetime.now()})
+        return render_template("signup.html", done=True)
+    return render_template("signup.html")
+
+@app.route("/admin/approvals")
+@need("admin")
+def approvals():
+    users = list(db.users.find({"role": "student", "status": "pending"}).sort("created", -1))
+    return render_template("admin_approvals.html", active="approvals", users=users)
+
+@app.post("/admin/approvals/<action>/<email>")
+@need("admin")
+def approval_action(action, email):
+    if action == "approve":
+        db.users.update_one({"email": email, "status": "pending"}, {"$set": {"status": "approved"}})
+    elif action == "reject":
+        db.users.delete_one({"email": email, "status": "pending"})
+    return redirect(url_for("approvals"))
 
 @app.route("/logout")
 def logout():

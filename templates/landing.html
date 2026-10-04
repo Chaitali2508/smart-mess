@@ -2,12 +2,12 @@
 {% block body %}
 <nav class="top"><a class="brand" href="/">in the kitchen</a>
   <a class="l" href="#features">Features</a><a class="l" href="#how">How It Works</a><a class="l" href="#faq">FAQ</a>
-  <a class="l" href="{{ url_for('login') }}">login</a><a class="btn" href="{{ url_for('login') }}">sign up</a></nav>
+  <a class="l" href="{{ url_for('login') }}">login</a><a class="btn" href="{{ url_for('signup') }}">sign up</a></nav>
 <section class="hero">
   <div><span class="chip">trusted by 500+ students</span>
     <h1>woh bhi aaj dhur hai, joh kabhi 🍛</h1>
     <p class="sub" style="font-size:1.1rem">Smart mess demand &amp; analytics for university students and hostel administrators.</p>
-    <div class="cta"><a class="btn" href="{{ url_for('login') }}">Get Started</a>
+    <div class="cta"><a class="btn" href="{{ url_for('signup') }}">Get Started</a>
       <a class="btn out" href="{{ url_for('login', role='student') }}">Student Login</a>
       <a class="btn soft" href="{{ url_for('login', role='admin') }}">Admin Login</a></div></div>
   <div class="card"><div class="meal" style="border:0"><b>Today's Mess</b><span class="tag">Open</span></div>

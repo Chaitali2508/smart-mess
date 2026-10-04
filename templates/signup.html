@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Sign up · in the kitchen{% endblock %}
+{% block body %}
+<div class="split">
+  <div class="art"><a class="brand" href="/">in the kitchen</a>
+    <div><h2>Join the mess portal.</h2><p>Mark attendance, rate meals and raise complaints in one place.</p></div></div>
+  <div class="formside">
+  {% if done %}
+    <div class="form"><h1>Request sent 🎉</h1>
+      <p class="sub">An admin will review your account. You can log in once it is approved.</p>
+      <a class="btn" href="{{ url_for('login') }}">Back to login</a></div>
+  {% else %}
+  <form class="form" method="post">
+    <h1>Create account</h1><p class="sub">Already have one? <a href="{{ url_for('login') }}">Log in</a></p>
+    <label for="name">Full name</label><input id="name" name="name" value="{{ name or '' }}" required>
+    <label for="email">College email</label><input id="email" name="email" type="email" value="{{ email or '' }}" placeholder="your@college.edu" required>
+    <label for="pw">Password</label><input id="pw" name="password" type="password" minlength="6" required>
+    <label for="cf">Confirm password</label><input id="cf" name="confirm" type="password" required>
+    {% if error %}<div class="msg">{{ error }}</div>{% endif %}
+    <button class="btn block" style="margin-top:1.2rem">Request account</button>
+  </form>
+  {% endif %}
+  </div>
+</div>
+{% endblock %}

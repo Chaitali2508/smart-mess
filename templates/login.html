@@ -5,7 +5,7 @@
   <div class="art"><a class="brand" href="/">in the kitchen</a>
     <div><h2>Where every meal tells a story.</h2><p>Track your mess attendance, rate food, and never miss a menu update.</p></div></div>
   <div class="formside"><form class="form" method="post">
-    <h1>Welcome Back!</h1><p class="sub">Don't have an account? <a href="#">Sign Up</a></p>
+    <h1>Welcome Back!</h1><p class="sub">Don't have an account? <a href="{{ url_for('signup') }}">Sign Up</a></p>
     <input type="hidden" name="role" id="role" value="{{ role }}">
     <div class="seg"><button type="button" data-r="student" class="{{ 'on' if role=='student' }}">Student</button>
       <button type="button" data-r="admin" class="{{ 'on' if role=='admin' }}">Admin</button></div>
