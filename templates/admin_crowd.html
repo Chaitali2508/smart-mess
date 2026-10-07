@@ -1,0 +1,24 @@
+{% extends "layout.html" %}
+{% block content %}
+<h1>Crowd Analytics</h1><p class="sub">Rush hours and busy days, from attendance timestamps</p>
+{% if info %}
+<div class="grid g3">
+  <div class="card stat"><b class="red">{{ info.peak }}</b><span>Peak hour (all records)</span></div>
+  <div class="card stat"><b class="green">{{ info.least }}</b><span>Least crowded hour</span></div>
+  <div class="card stat"><b class="amber" style="font-size:1.3rem">{{ info.rush }}</b><span>Rush hours</span></div></div>
+<div class="card" style="margin-top:1rem"><h2>Hourly attendance</h2><canvas id="h" data-values='{{ chart|tojson }}'></canvas></div>
+<div class="card" style="margin-top:1rem"><h2>Average meals served per weekday</h2><canvas id="w"></canvas></div>
+<div class="card" style="margin-top:1rem"><h2>Attendance heatmap (% of approved students)</h2>
+  <table><tr><th></th>{% for d in days %}<th>{{ d }}</th>{% endfor %}</tr>
+  {% for i in range(4) %}<tr><td><b>{{ meals[i]|title }}</b></td>
+    {% for v in heat[i] %}<td style="text-align:center;background:rgba(29,95,224,{{ (v / 100)|round(2) }});color:{{ '#fff' if v > 55 else '#0a1654' }};border-radius:6px">{{ v }}%</td>{% endfor %}</tr>{% endfor %}</table></div>
+<div class="ai" style="margin-top:1rem"><h2>Suggestion (rule-based)</h2>
+  <p style="margin:.3rem 0">Consider extra serving staff around <b>{{ info.rush }}</b>. Busiest slot: <b>{{ info.busiest }}</b>. Staggering entry by hostel block in that slot can shorten queues.</p></div>
+{% else %}<div class="card"><p class="sub" style="margin:0">No attendance records yet. Students mark attendance, or run <code>python seed_demo.py</code> for demo data.</p></div>{% endif %}
+{% endblock %}
+{% block scripts %}{% if info %}<script>
+const C = JSON.parse(document.getElementById('h').dataset.values);
+new Chart(document.getElementById('h'), {type:'bar', data:{labels:C.labels, datasets:[
+  {label:'All records', data:C.all, backgroundColor:'#1d5fe0', borderRadius:5}, {label:'Today', data:C.today, backgroundColor:'#e08a00', borderRadius:5}]}});
+new Chart(document.getElementById('w'), {type:'line', data:{labels:C.days, datasets:[{data:C.weekly, borderColor:'#1d5fe0', tension:.3}]}, options:{plugins:{legend:{display:false}}}});
+</script>{% endif %}{% endblock %}

@@ -1,0 +1,24 @@
+{% extends "layout.html" %}
+{% block content %}
+<h1>Mess QR Code</h1><p class="sub">Show this at the mess entrance. Students scan it to mark attendance.</p>
+<div class="card" style="text-align:center;max-width:420px">
+  <div id="qr" style="display:inline-block;padding:12px;background:#fff"></div>
+  <h2 id="code" style="margin-top:1rem;letter-spacing:.15em">...</h2>
+  <p class="sub" style="margin:0">The code changes every 5 minutes. Next change in <b id="left">–</b> s.</p></div>
+<div class="card" style="margin-top:1rem;max-width:420px"><b>Why it rotates:</b> a photo of the code stops working after a few minutes, so students cannot mark attendance from outside the mess.</div>
+{% endblock %}
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+let last = null;
+async function refresh() {
+  const d = await (await fetch('/api/qr-code')).json();
+  document.getElementById('left').textContent = d.seconds_left;
+  if (d.code !== last) {
+    last = d.code; const box = document.getElementById('qr'); box.innerHTML = '';
+    new QRCode(box, {text: d.code, width: 240, height: 240});
+    document.getElementById('code').textContent = d.code;
+  }
+}
+refresh(); setInterval(refresh, 5000);
+</script>{% endblock %}

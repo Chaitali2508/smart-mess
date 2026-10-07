@@ -1,0 +1,41 @@
+{% extends "layout.html" %}
+{% block content %}
+<h1>Food Waste Analytics</h1><p class="sub">Log what was prepared and left over, and plan the next week's quantities</p>
+<div class="grid g3">
+  <div class="card stat"><b class="blue">{{ stats.prep }}</b><span>Portions prepared (logged)</span></div>
+  <div class="card stat"><b class="green">{{ stats.consumed }}</b><span>Consumed</span></div>
+  <div class="card stat"><b class="amber">{{ stats.pct }}%</b><span>Waste</span></div></div>
+<div class="card" style="margin-top:1rem"><h2>Log a meal</h2>
+  <form method="post" action="{{ url_for('waste_add') }}" class="inline">
+    <div><label for="d">Date</label><input id="d" name="date" type="date" value="{{ today_iso }}" required></div>
+    <div><label for="m">Meal</label><select id="m" name="meal" style="width:100%">{% for m in meals %}<option value="{{ m }}">{{ m|title }}</option>{% endfor %}</select></div>
+    <div><label for="p">Prepared</label><input id="p" name="prepared" type="number" min="1" required></div>
+    <div><label for="l">Left over</label><input id="l" name="leftover" type="number" min="0" required></div>
+    <button class="btn" style="margin:0">Save</button></form>
+  <p class="sub" style="margin:.8rem 0 0;font-size:.82rem">Saving the same date and meal again updates that entry.</p></div>
+{% if stats.prep %}
+<div class="grid g2" style="margin-top:1rem">
+  <div class="card"><h2>Waste trend (% per day)</h2><canvas id="t" data-values='{{ chart|tojson }}'></canvas></div>
+  <div class="card"><h2>Consumed vs wasted</h2><div style="max-width:240px;margin:auto"><canvas id="s"></canvas></div></div></div>
+<div class="card" style="margin-top:1rem"><h2>Average waste by meal (%)</h2><canvas id="b" height="70"></canvas></div>
+<div class="card" style="margin-top:1rem"><h2>Waste alerts</h2>
+  {% for a in alerts %}<div class="row"><span>⚠️ {{ a }}</span></div>{% else %}<p class="sub" style="margin:0">No meal is above the 10% waste level.</p>{% endfor %}</div>
+{% endif %}
+{% if forecast %}
+<div class="card" style="margin-top:1rem"><h2>Suggested quantities, next 7 days</h2>
+  <p class="sub" style="font-size:.85rem">From the attendance forecast (Linear Regression): predicted students, then suggested portions with a 5% buffer. Scale to your mess size.</p>
+  <table><tr><th>Day</th>{% for m in meals %}<th>{{ m|title }}</th>{% endfor %}</tr>
+  {% for i in range(forecast.forecast.labels|length) %}<tr><td>{{ forecast.forecast.labels[i] }}</td>
+    {% for m in meals %}{% set v = forecast.forecast.by_meal[m|title][i] %}<td>{{ v }} -> <b>{{ (v * 1.05)|round|int }}</b></td>{% endfor %}</tr>{% endfor %}</table></div>
+{% endif %}
+<div class="card" style="margin-top:1rem"><h2>Recent entries</h2>
+  {% for l in logs %}<div class="row"><span>{{ l.date }} · <b>{{ l.meal|title }}</b> · prepared {{ l.prepared }} · left {{ l.leftover }} ({{ (100 * l.leftover / l.prepared)|round(1) }}%)</span>
+    <form method="post" action="{{ url_for('waste_delete') }}"><input type="hidden" name="date" value="{{ l.date }}"><input type="hidden" name="meal" value="{{ l.meal }}"><button class="btn out" style="padding:.2rem .7rem;margin:0">✕</button></form></div>
+  {% else %}<p class="sub" style="margin:0">No entries yet. Log a meal above, or run <code>python seed_demo.py</code>.</p>{% endfor %}</div>
+{% endblock %}
+{% block scripts %}{% if stats.prep %}<script>
+const C = JSON.parse(document.getElementById('t').dataset.values);
+new Chart(document.getElementById('t'), {type:'line', data:{labels:C.trend.labels, datasets:[{data:C.trend.values, borderColor:'#e08a00', tension:.3}]}, options:{plugins:{legend:{display:false}}}});
+new Chart(document.getElementById('s'), {type:'doughnut', data:{labels:['Consumed','Wasted'], datasets:[{data:C.split, backgroundColor:['#1d5fe0','#d93636']}]}});
+new Chart(document.getElementById('b'), {type:'bar', data:{labels:C.meal.labels, datasets:[{data:C.meal.values, backgroundColor:'#e08a00', borderRadius:6}]}, options:{plugins:{legend:{display:false}}}});
+</script>{% endif %}{% endblock %}

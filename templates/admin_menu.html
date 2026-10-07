@@ -1,0 +1,14 @@
+{% extends "layout.html" %}
+{% block content %}
+<h1>Menu Management</h1><p class="sub">Add, edit and manage weekly meal plans with nutrition values</p>
+<div class="mealtabs">{% for d in days %}<a href="{{ url_for('admin_menu', day=d) }}" class="{{ 'on' if d == day }}">{{ d }}</a>{% endfor %}</div>
+<div class="grid g2">{% for m in meals %}{% set items = menu[day][m] %}
+  <div class="card"><div class="row" style="border:0;padding:0"><h2>{{ m|title }}</h2>
+    <span class="sub" style="margin:0">{{ items|sum(attribute='kcal')|round|int }} kcal · {{ items|sum(attribute='protein')|round(1) }}g protein</span></div>
+    {% for it in items %}<div class="row"><div>{{ it.name }}<br><span class="sub" style="margin:0;font-size:.8rem">{{ it.kcal|round|int }} kcal · {{ it.protein }}g protein · {{ it.carbs }}g carbs</span></div>
+      <form method="post" action="{{ url_for('menu_delete') }}"><input type="hidden" name="day" value="{{ day }}"><input type="hidden" name="meal" value="{{ m }}"><input type="hidden" name="idx" value="{{ loop.index0 }}"><button class="btn out" style="padding:.2rem .7rem;margin:0">✕</button></form></div>{% endfor %}
+    <form method="post" action="{{ url_for('menu_add') }}" style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:.4rem;margin-top:1rem">
+      <input type="hidden" name="day" value="{{ day }}"><input type="hidden" name="meal" value="{{ m }}">
+      <input name="name" placeholder="Item" required style="padding:.5rem"><input name="kcal" type="number" step="any" placeholder="kcal" style="padding:.5rem"><input name="protein" type="number" step="any" placeholder="protein" style="padding:.5rem"><input name="carbs" type="number" step="any" placeholder="carbs" style="padding:.5rem">
+      <button class="btn" style="margin:0;padding:.4rem 1rem">Add</button></form></div>{% endfor %}</div>
+{% endblock %}

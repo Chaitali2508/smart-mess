@@ -1,0 +1,7 @@
+{% extends "layout.html" %}
+{% block content %}
+<h1>Weekly Menu</h1><p class="sub">What's being served this week</p>
+{% for d in days %}<div class="card" style="margin-bottom:1rem"><h2>{{ d }}{% if d == today_name %} <span class="tag">Today</span>{% endif %}</h2>
+  <div class="grid g4">{% for m in meals %}<div><b>{{ m|title }}</b><div class="sub" style="font-size:.8rem;margin:0 0 .4rem">{{ times[m] }}</div>
+    {% for it in menu[d][m] %}<div style="font-size:.9rem">• {{ it.name }}</div>{% else %}<div class="sub">Not set</div>{% endfor %}</div>{% endfor %}</div></div>{% endfor %}
+{% endblock %}

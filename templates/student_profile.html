@@ -1,0 +1,11 @@
+{% extends "layout.html" %}
+{% block content %}
+<h1>Profile</h1><p class="sub">Your account and activity</p>
+<div class="card" style="display:flex;gap:1rem;align-items:center"><div class="num" style="margin:0">{{ name[:1]|upper }}</div><div><b style="font-size:1.2rem">{{ name }}</b><br><span class="sub" style="margin:0">{{ email }} · Student</span></div></div>
+<div class="card" style="margin-top:1rem"><h2>Your Activity</h2><div class="grid g4">
+  <div class="stat"><b class="green">{{ st.pct }}%</b><span>Attendance</span></div><div class="stat"><b>{{ st.present }}</b><span>Present Days</span></div>
+  <div class="stat"><b class="blue">{{ n_reviews }}</b><span>Reviews Written</span></div><div class="stat"><b class="red">{{ n_complaints }}</b><span>Complaints Raised</span></div></div></div>
+<div class="card" style="margin-top:1rem"><h2>Recent Activity</h2>
+  {% for when, icon, text in acts %}<div class="row"><span>{{ icon }} {{ text }}</span><span class="sub" style="margin:0">{{ when.strftime('%d %b, %H:%M') }}</span></div>
+  {% else %}<p class="sub" style="margin:0">No activity yet.</p>{% endfor %}</div>
+{% endblock %}

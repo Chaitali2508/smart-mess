@@ -1,0 +1,29 @@
+{% extends "layout.html" %}
+{% block content %}
+<h1>Nutrition Calculator</h1><p class="sub">Track calories and nutrients from your mess meals</p>
+<div class="card"><h2>Add Food Item</h2>
+  <form method="post" action="{{ url_for('nutrition_add') }}" class="inline">
+    <div><label for="meal">Meal</label><select id="meal" name="meal" style="width:100%">{% for m in meals %}<option value="{{ m }}">{{ m|title }}</option>{% endfor %}</select></div>
+    <div style="flex:2"><label for="item">Food (from today's menu)</label><select id="item" name="item" style="width:100%" data-menu='{{ menu_json|tojson }}'></select></div>
+    <div style="max-width:110px"><label for="qty">Servings</label><input id="qty" name="qty" type="number" step="0.5" min="0.5" max="5" value="1"></div>
+    <button class="btn" style="margin:0">Add</button></form></div>
+<div class="card" style="margin-top:1rem"><h2>Daily Goal Progress</h2>
+  <div class="grid g3" style="text-align:center">
+    {% for k, label, color in [('kcal','Calories','#e08a00'),('protein','Protein','#1d5fe0'),('carbs','Carbs','#1f9d55')] %}
+    <div><div class="ring" style="--p:{{ pct[k] }};--c:{{ color }}"><i>{{ pct[k] }}%</i></div><b>{{ label }}</b><br><span class="sub" style="margin:0">{{ tot[k]|round|int }} / {{ goals[k] }}{{ ' kcal' if k=='kcal' else ' g' }}</span></div>{% endfor %}</div>
+  <p class="sub" style="margin:1rem 0 0;font-size:.8rem">Targets are typical adult defaults, not medical advice.</p></div>
+<div class="ai" style="margin-top:1rem"><h2>Suggestion</h2><p style="margin:.3rem 0">{{ tip }}</p></div>
+<div class="grid g2" style="margin-top:1rem">
+  <div class="card"><h2>Weekly Calorie Intake</h2><canvas id="w" data-values='{{ week|tojson }}'></canvas></div>
+  <div class="card"><h2>Today's Log</h2>
+    {% for l in logs %}<div class="row"><div><b>{{ l.item }}</b> × {{ l.qty|round(1) }}<br><span class="sub" style="margin:0;font-size:.8rem">{{ l.meal|title }} · {{ l.kcal|round|int }} kcal · {{ l.protein|round(1) }} g protein · {{ l.carbs|round(1) }} g carbs</span></div>
+      <form method="post" action="{{ url_for('nutrition_delete') }}"><input type="hidden" name="id" value="{{ l._id }}"><button class="btn out" style="padding:.2rem .7rem;margin:0">✕</button></form></div>
+    {% else %}<p class="sub" style="margin:0">Nothing logged yet today.</p>{% endfor %}</div></div>
+{% endblock %}
+{% block scripts %}<script>
+const sel = document.getElementById('item'), menu = JSON.parse(sel.dataset.menu), meal = document.getElementById('meal');
+function fill() { sel.innerHTML = (menu[meal.value] || []).map(n => `<option>${n}</option>`).join(''); }
+meal.onchange = fill; fill();
+const W = JSON.parse(document.getElementById('w').dataset.values);
+new Chart(document.getElementById('w'), {type:'bar', data:{labels:W.labels, datasets:[{data:W.values, backgroundColor:'#1d5fe0', borderRadius:6}]}, options:{plugins:{legend:{display:false}}}});
+</script>{% endblock %}
